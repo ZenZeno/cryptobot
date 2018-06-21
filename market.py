@@ -1,7 +1,7 @@
 import poloniex
 import pandas
 import plotly
-
+import plotly.graph_objs as go
 
 class Market():
     def __init__(self, mode = 'ticker', pair = 'BTC_ETH', start = False, end = False, period = 300):
@@ -24,9 +24,11 @@ class Market():
 
     def plot(self):
         last = self.ticker['last']
-
-        plotly.offline.plot({
-                             'data': [last.index, last.data],
-                             'layout': go.Layout(title='hello world')
-                            })
-
+        data = go.Data([
+            go.Scatter(
+                x = last.index,
+                y = last
+            )])
+        layout = go.Layout(title = 'First Plot')
+        figure = go.Figure(data = data, layout = layout)
+        return figure
