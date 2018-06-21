@@ -2,6 +2,8 @@ import poloniex
 import pandas
 import plotly
 import plotly.graph_objs as go
+import dash_html_components as html
+
 
 class Market():
     def __init__(self, mode = 'ticker', pair = 'BTC_ETH', start = False, end = False, period = 300):
@@ -32,3 +34,17 @@ class Market():
         layout = go.Layout(title = 'First Plot')
         figure = go.Figure(data = data, layout = layout)
         return figure
+
+    def generate_table(self, max_rows = 10):
+        #Convert the tail of self.ticker into an html table:
+        tail = self.ticker.tail(max_rows)
+        table = html.Table(
+                #Header
+                [html.Tr([html.Th(col) for col in tail.columns])] + 
+                #Body
+                [html.Tr(
+                    [html.Td(tail.iloc[i][col]) for col in tail.columns
+                    ]) for i in range(min(len(tail), max_rows))]
+                )
+        
+        return table

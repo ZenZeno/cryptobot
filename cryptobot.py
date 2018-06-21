@@ -16,7 +16,8 @@ app.layout = html.Div(
                 id = 'interval',
                 interval = 1000,
                 n_intervals =0
-                )
+                ),
+            html.Div(id='table-container')
             ])
         )
         
@@ -27,6 +28,12 @@ def update_ticker(n):
     figure = test_market.plot()
 
     return figure
+
+
+@app.callback(Output('table-container', 'children'),
+        [Input('interval', 'n_intervals')])
+def update_table(n):
+    return test_market.generate_table(10)
 
 if __name__ == '__main__':
     app.run_server()
