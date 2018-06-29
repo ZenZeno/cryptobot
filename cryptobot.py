@@ -4,14 +4,15 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import market
 
-test_market = market.Market()
+test_market = market.TestMarket()
+live_market = market.LiveMarket()
 
 app = dash.Dash()
 
 app.layout = html.Div(
         html.Div([
             html.H4('Poloniex Market'),
-            dcc.Graph(id='live-ticker-feed'),
+            dcc.Graph(id='market-backtest', figure=test_market.plot('weightedAverage')),
             dcc.Interval(
                 id = 'interval',
                 interval = 1000,
@@ -21,15 +22,6 @@ app.layout = html.Div(
             ])
         )
         
-@app.callback(Output('live-ticker-feed', 'figure'),
-        [Input('interval', 'n_intervals')])
-def update_ticker(n):
-    test_market.update()
-    figure = test_market.plot()
-
-    return figure
-
-
 @app.callback(Output('table-container', 'children'),
         [Input('interval', 'n_intervals')])
 def update_table(n):
