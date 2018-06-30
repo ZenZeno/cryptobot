@@ -58,3 +58,8 @@ class TestMarket(Market):
         self.ticker = self.api.returnChartData(self.pair, self.start, self.end, self.period)
         print(self.ticker.tail(10))
 
+    def calculate_moving_avg(self, short_window, long_window):
+        self.ticker['shortAvg'] = self.ticker['weightedAverage'].rolling(short_window).mean()
+        self.ticker['longAvg'] = self.ticker['weightedAverage'].rolling(long_window).mean()
+        print(self.ticker)
+
