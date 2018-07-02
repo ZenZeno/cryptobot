@@ -25,30 +25,19 @@ class Market():
                 )
         
         return table
-
-    def plot(self, label):
-        column = self.ticker[label]
-        data = go.Data([
-            go.Scatter(
-                x = column.index,
-                y = column
-            )])
-        layout = go.Layout(title = label)
-        figure = go.Figure(data = data, layout = layout)
-        return figure
     
 
 class LiveMarket(Market):
     def __init__(self, pair = 'BTC_ETH', period = 300):
         Market.__init__(self, pair, period)
         self.ticker = self.api.returnTicker(self.pair)     
-        print(self.ticker)
-
 
     def update(self):
         self.ticker = pandas.concat([self.ticker, self.api.returnTicker(self.pair)])
-        
-        print(self.ticker)
+    
+    def calculate_moving_avg(self, short_window, long_window):
+        self.ticker['shortAvg'] = self.ticker['last'].rolling(short_window).mean()
+        self.ticker['longAvg'] = self.ticker['last'].rolling(long_window).mean()
 
 class TestMarket(Market):
     def __init__(self, pair = 'BTC_ETH', start = '2018-05-01 00:00:00', end = '2018-05-31 00:00:00', period = 300):

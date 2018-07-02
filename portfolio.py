@@ -6,14 +6,18 @@ class Portfolio:
                                        'trade volume' : 0, 'price': 0,
                                        'holdings' : 0, 'value' : 0}, 
                                         index = [0])
+    def get_capital(self):
+        return self.positions.iloc[-1]['capital']
+    
+    def get_holdings(self):
+        return self.positions.iloc[-1]['holdings']
 
-    def buy_order(self, order_number, volume, price):
+    def buy_order(self, volume, price):
             capital = self.positions.iloc[-1]['capital'] - (volume * price)
             holdings = self.positions.iloc[-1]['holdings'] + volume
             value = holdings * price
             
             data = {
-                'order number' : order_number,
                 'capital' : capital,
                 'trade volume' : volume, 'price' : price,
                 'holdings' : holdings, 'value' : value,
@@ -22,13 +26,12 @@ class Portfolio:
 
             self.positions = self.positions.append(pd.DataFrame(data, index = [0]), ignore_index = True)
 
-    def sell_order(self, order_number, volume, price):
+    def sell_order(self, volume, price):
             capital = self.positions.iloc[-1]['capital'] + (volume * price)
             holdings = self.positions.iloc[-1]['holdings'] - volume
             value = holdings * price
             
             data = {
-                'order number' : order_number,
                 'capital' : capital,
                 'trade volume' : volume, 'price' : price,
                 'holdings' : holdings, 'value' : value,

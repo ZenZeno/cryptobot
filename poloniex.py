@@ -19,7 +19,6 @@ class Poloniex:
 
     def api_query(self, command, args={}):
         if command == 'returnTicker' or command == 'return24hVolume' or command == 'returnCurrencies':
-            print('Executing command ' + command)
             result = requests.get('http://poloniex.com/public', {'command':command})
             return result
         elif command == 'returnChartData':
@@ -32,8 +31,15 @@ class Poloniex:
     def returnTicker(self, pair):
         result = self.api_query('returnTicker')
         
+        #Try again until data is recieved:
+        while result.status_code != 200:
+            print('Poloniex ticker timed out. Retrying...')
+            result = self.api_query('returnTicker')
+
         #we want to return only the ticker data for the specified currency
         data = pandas.DataFrame(result.json())
+        print(result)
+
         data = data.loc[:, pair].T
 
         #add a timestamp and convert data to the proper shape:
