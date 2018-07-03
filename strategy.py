@@ -2,6 +2,7 @@ import market
 import portfolio
 import pandas as pd
 import numpy as np
+import time
 
 class Strategy():
     def __init__(self, market, initial_capital = 1000, decision_length = 1):
@@ -37,10 +38,8 @@ class Strategy():
         print()
         print(self.portfolio.positions.tail(20))
     
-    def simulate(self, short_window, long_window):
-        self.market.calculate_moving_avg(short_window, long_window)
-
-        print('Simulating market strategy ')
+    def simulate(self, short_window, long_window, save=False):
+        print('Simulating market strategy ' + str(short_window) + ', ' + str(long_window))
 
         for i in range(len(self.market.ticker)):
             self.decision_frame = self.market.ticker.iloc[i:i+self.decision_length]
@@ -49,8 +48,18 @@ class Strategy():
         print(self.portfolio.positions.tail())
         print()
 
+        if save:
+            self.save_state()
+
         #calculate returns for simply holding initial purchase for the period:
         holding_volume = self.portfolio.positions.iloc[0]['capital'] / self.market.ticker.iloc[0]['weightedAverage']
         end_value = holding_volume * self.market.ticker.iloc[-1]['weightedAverage']
 
         print(end_value)
+
+    def save_state(self):
+        filename = time.strftime('%Y-%m-%d-%M-%S') 
+        state = self.market.ticker.append(self.portfolio.positions)
+        state.to_csv(filename)
+
+
