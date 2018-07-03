@@ -75,6 +75,7 @@ class Poloniex:
 
         result = pandas.DataFrame(result.json())
         result.index = result['date'].apply(self.createTimeString)
+        result = result.drop('date', axis = 1)
         print(result)
 
         return result

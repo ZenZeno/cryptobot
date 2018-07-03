@@ -7,9 +7,9 @@ def main():
     test_market = market.TestMarket()
     test_strategy = strategy.Strategy(test_market)
 
-    test_strategy.simulate(2, 10, True)
-    test_strategy.simulate(2, 5, True)
-    test_strategy.simulate(2, 10, True)
+    test_strategy.simulate(2, 10)
+    test_strategy.simulate(2, 5)
+    test_strategy.simulate(2, 10)
     
 if __name__ == '__main__':
     main()

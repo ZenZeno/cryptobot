@@ -12,9 +12,14 @@ class Strategy():
         self.decision_frame = pd.DataFrame()
 
     def tick(self):
+        #prepare new market data for trading:
         self.market.update()
-        self.decision_frame = self.market.tail(self.decision_length)
-        self.trade()
+        self.decision_frame = self.market.ticker.tail(self.decision_length)
+        
+        #trade, if we have enough data to decide on strategy:
+        if len(decision_frame) == decision_length:
+            self.trade()
+
         self.display()
 
     def trade(self, test = False):
@@ -23,14 +28,17 @@ class Strategy():
         else:
             price = self.decision_frame.iloc[-1]['last']
 
+    
         #buy or sell all, randomly:
         signal = np.random.randint(-1,2)
+        date = self.decision_frame.iloc[-1].name #.iloc[-1].name == index of last row
+
         if signal == 1 and self.portfolio.get_capital() > 0:
             volume = self.portfolio.get_capital() / price
-            self.portfolio.buy_order(volume, price, test)
+            self.portfolio.buy_order(volume, price, date, test)
         elif signal == -1:
             volume = self.portfolio.get_holdings()
-            self.portfolio.sell_order(volume, price, test)
+            self.portfolio.sell_order(volume, price, date, test)
 
     def display(self):
         print('\033c')
@@ -41,21 +49,23 @@ class Strategy():
     def simulate(self, short_window, long_window, save=False):
         print('Simulating market strategy ' + str(short_window) + ', ' + str(long_window))
 
+        #step through historic market data:
         for i in range(len(self.market.ticker)):
             self.decision_frame = self.market.ticker.iloc[i:i+self.decision_length]
             self.trade(True)
 
-        print(self.portfolio.positions.tail())
-        print()
-
         if save:
             self.save_state()
+        
+        print(self.portfolio.positions.tail())
 
         #calculate returns for simply holding initial purchase for the period:
         holding_volume = self.portfolio.positions.iloc[0]['capital'] / self.market.ticker.iloc[0]['weightedAverage']
         end_value = holding_volume * self.market.ticker.iloc[-1]['weightedAverage']
 
-        print(end_value)
+        #return percent difference from simple holding value:
+        percent_diff = (self.portfolio.get_total() - end_value) / end_value
+        return percent_diff
 
     def save_state(self):
         filename = time.strftime('%Y-%m-%d-%M-%S') 
