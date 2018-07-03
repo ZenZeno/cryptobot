@@ -12,7 +12,7 @@ class Portfolio:
     def get_holdings(self):
         return self.positions.iloc[-1]['holdings']
 
-    def buy_order(self, volume, price):
+    def buy_order(self, volume, price, test):
             capital = self.positions.iloc[-1]['capital'] - (volume * price)
             holdings = self.positions.iloc[-1]['holdings'] + volume
             value = holdings * price
@@ -26,7 +26,7 @@ class Portfolio:
 
             self.positions = self.positions.append(pd.DataFrame(data, index = [0]), ignore_index = True)
 
-    def sell_order(self, volume, price):
+    def sell_order(self, volume, price, test):
             capital = self.positions.iloc[-1]['capital'] + (volume * price)
             holdings = self.positions.iloc[-1]['holdings'] - volume
             value = holdings * price
