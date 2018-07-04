@@ -1,7 +1,5 @@
-import matplotlib.pyplot as plt
 import time
 import pandas
-import os
 
 import market
 import strategy

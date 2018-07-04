@@ -46,8 +46,8 @@ class Strategy():
         print()
         print(self.portfolio.positions.tail(20))
     
-    def simulate(self, short_window, long_window, save=False):
-        print('Simulating market strategy ' + str(short_window) + ', ' + str(long_window))
+    def simulate(self, save = False):
+        print('Simulating market strategy')
 
         #step through historic market data:
         for i in range(len(self.market.ticker)):
@@ -57,14 +57,14 @@ class Strategy():
         if save:
             self.save_state()
         
-        print(self.portfolio.positions.tail())
-
         #calculate returns for simply holding initial purchase for the period:
         holding_volume = self.portfolio.positions.iloc[0]['capital'] / self.market.ticker.iloc[0]['weightedAverage']
         end_value = holding_volume * self.market.ticker.iloc[-1]['weightedAverage']
 
         #return percent difference from simple holding value:
         percent_diff = (self.portfolio.get_total() - end_value) / end_value
+        print(percent_diff)
+
         return percent_diff
 
     def save_state(self):
