@@ -3,7 +3,8 @@ import time
 
 class Portfolio:
     def __init__(self, initial_capital):
-        self.positions = pd.DataFrame({'capital' : initial_capital, 
+        self.initial_capital = initial_capital
+        self.positions = pd.DataFrame({'capital' : self.initial_capital, 
                                        'trade volume' : 0, 'price': 0,
                                        'holdings' : 0, 'value' : 0}, 
                                         index = [0])

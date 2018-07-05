@@ -72,4 +72,14 @@ class Strategy():
         state = self.market.ticker.append(self.portfolio.positions)
         state.to_csv(filename)
 
+    def get_stats(self):
+        percent_gain = (self.portfolio.get_total() 
+                      - self.portfolio.initial_capital) / self.portfolio.initial_capital
+        market_percent_diff = (self.market.ticker.iloc[-1]['weightedAverage'] 
+                    - self.market.ticker.iloc[0]['weightedAverage']) / self.market.ticker.iloc[0]['weightedAverage']
 
+        data = {'strategy return %' : percent_gain,
+                'market performance %': market_percent_diff,
+                'strategy relative performance %' : percent_gain - market_percent_diff}
+
+        return pd.DataFrame(data, index=[0])

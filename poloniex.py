@@ -38,8 +38,6 @@ class Poloniex:
 
         #we want to return only the ticker data for the specified currency
         data = pandas.DataFrame(result.json())
-        print(result)
-
         data = data.loc[:, pair].T
 
         #add a timestamp and convert data to the proper shape:
@@ -50,49 +48,22 @@ class Poloniex:
         
         return data 
 
-    def return24Volume(self):
-        result = self.api_query('return24hVolume')
-        if result:
-            data = pandas.DataFrame(result.json()) 
-            return data
-        else:
-            print('No data retrieved')
-
-    def returnCurrencies(self):
-        result = self.api_query('returnCurrencies')
-        if result:
-            data = pandas.DataFrame(result.json())
-            return data
-        else:
-            print('No data retrieved')
-
     def returnChartData(self, pair, start, end, period):
+        print('Fetching poloniex chart data...')
         result = self.api_query('returnChartData', 
-                                {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
-        while isinstance(result, (str, type(None))):
+                        {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
+        
+        #Try again until data is recieved:
+        while result.status_code != 200:
+            print('Poloniex chart data timed out. Retrying...')
             result = self.api_query('returnChartData', 
-                                    {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
+                            {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
 
+        #parse json into dataframe, then set the date string as index:
         result = pandas.DataFrame(result.json())
         result.index = result['date'].apply(self.createTimeString)
         result = result.drop('date', axis = 1)
         print(result)
 
         return result
-
-
-if __name__ == '__main__':
-    api = Poloniex('key', 'secret')
-
-    tickerTest = api.returnTicker()
-    print(tickerTest)
-
-    volumeTest = api.return24Volume()
-    print(volumeTest)
-
-    currencyTest = api.returnCurrencies()
-    print(currencyTest)
-
-    chartTest = api.returnChartData('BTC_USD', api.createTimeStamp('2018-05-31 13:00:00'), 
-                                    api.createTimeStamp('2018-05-31 14:00:00'), 900)
 
