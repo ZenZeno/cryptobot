@@ -2,6 +2,7 @@
 import datetime
 import numpy as np
 import pandas as pd
+import sys
 
 #Cryptobot classes:
 import strategy
@@ -16,7 +17,7 @@ def run_simulation(start, end):
     test_strategy = strategy.Strategy(test_market)
 
     test_strategy.simulate()
-    print(test_strategy.get_stats())
+    return test_strategy.get_stats('weightedAverage')
 
 def rand_period():
     min_date = datetime.datetime.strptime('2014-01-01 00:00:00', '%Y-%m-%d %H:%M:%S').timestamp() 
@@ -33,8 +34,20 @@ def rand_period():
 
 def main():
 
-    start_date, end_date = rand_period()
-    run_simulation(start_date, end_date)
+    if len(sys.argv) > 1:
+        num_simulations = int(sys.argv[1])
+    else:
+        num_simulations = 1
+
+    print(num_simulations)
+    results = pd.DataFrame()
+
+    for i in range(num_simulations):
+        start_date, end_date = rand_period()
+        results = results.append(run_simulation(start_date, end_date), ignore_index=True)
+        print(results)
+    
+    results.to_csv('results.csv')
 
 if __name__ == '__main__':
     main()

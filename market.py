@@ -1,5 +1,9 @@
-import poloniex
+#Python Libraries:
 import pandas
+import datetime
+
+#local includes:
+import poloniex
 
 class Market():
     def __init__(self, pair = 'BTC_ETH', period = 300):
@@ -23,13 +27,10 @@ class LiveMarket(Market):
 class TestMarket(Market):
     def __init__(self, pair = 'BTC_ETH', start = '2018-05-01 00:00:00', end = '2018-05-31 00:00:00', period = 300):
         Market.__init__(self, pair, period)
-        self.start = self.api.createTimeStamp(start)
-        self.end = self.api.createTimeStamp(end)
-        self.ticker = self.api.returnChartData(self.pair, self.start, self.end, self.period)
+        self.start = datetime.datetime.strptime(start, '%Y-%m-%d %H:%M:%S') 
+        self.end = datetime.datetime.strptime(end, '%Y-%m-%d %H:%M:%S')  
+        self.ticker = self.api.returnChartData(self.pair, self.start.timestamp(), self.end.timestamp(), self.period)
 
     def calculate_moving_avg(self, short_window, long_window):
         self.ticker['shortAvg'] = self.ticker['weightedAverage'].rolling(short_window).mean()
         self.ticker['longAvg'] = self.ticker['weightedAverage'].rolling(long_window).mean()
-        print(self.ticker)
-        print(date)
-
