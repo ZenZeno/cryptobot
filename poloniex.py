@@ -19,22 +19,22 @@ class Poloniex:
 
     def api_query(self, command, args={}):
         if command == 'returnTicker' or command == 'return24hVolume' or command == 'returnCurrencies':
-            result = requests.get('http://poloniex.com/public', {'command':command})
             return result
-        elif command == 'returnChartData':
+        elif command == 'chart_data':
             args['command'] = command
             result = requests.get('http://poloniex.com/public', args)
             return result
         else:
             raise ValueError(command + ' is not a valid command')
         
-    def returnTicker(self, pair):
-        result = self.api_query('returnTicker')
+    def ticker(self, pair):
+        result = requests.get('http://poloniex.com/public', {'command': 'returnTicker'})
         
         #Try again until data is recieved:
         while result.status_code != 200:
             print('Poloniex ticker timed out. Retrying...')
-            result = self.api_query('returnTicker')
+            
+            result = requests.get('http://poloniex.com/public', {'command': 'returnTicker'})
 
         #we want to return only the ticker data for the specified currency
         data = pandas.DataFrame(result.json())
@@ -48,22 +48,31 @@ class Poloniex:
         
         return data 
 
-    def returnChartData(self, pair, start, end, period):
+    def chart_data(self, pair, start, end, period):
         print('Fetching poloniex chart data...')
-        result = self.api_query('returnChartData', 
-                        {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
+
+        result = self.api_query('http://poloniex.com/public', 
+                {'command': 'returnChartData', 
+                 'currencyPair':pair, 
+                 'start': start, 
+                 'end': end, 
+                 'period':period})
         
         #Try again until data is recieved:
         while result.status_code != 200:
             print('Poloniex chart data timed out. Retrying...')
-            result = self.api_query('returnChartData', 
-                            {'currencyPair':pair, 'start': start, 'end': end, 'period':period})
+
+            result = self.api_query('http://poloniex.com/public', 
+                    {'command': 'returnChartData', 
+                     'currencyPair':pair, 
+                     'start': start, 
+                     'end': end, 
+                     'period':period})
 
         #parse json into dataframe, then set the date string as index:
         result = pandas.DataFrame(result.json())
         result.index = result['date'].apply(self.createTimeString)
         result = result.drop('date', axis = 1)
-        print(result)
 
         return result
 

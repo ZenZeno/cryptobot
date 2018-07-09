@@ -39,7 +39,7 @@ if __name__ == '__main__':
     start = dt.datetime.strptime('2018-05-01 00:00:00', STR_FMT)
     end = dt.datetime.strptime('2018-05-30 00:00:00', STR_FMT)
     api = poloniex.Poloniex('key', 'secret')
-    market_data = api.returnChartData('BTC_ETH', start.timestamp(), end.timestamp(), 300)
+    market_data = api.chart_data('BTC_ETH', start.timestamp(), end.timestamp(), 300)
 
     #generate signals over the weighted average of test market data
     mac_strategy = MovingAverageCrossover(2, 10)
