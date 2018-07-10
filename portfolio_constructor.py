@@ -18,6 +18,16 @@ class PortfolioConstructor():
     def generate_target_portfolio():
         pass
 
+class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
+    def __init__(self, initial_capital):
+        alpha_models = [MovingAverageCrossover(2, 10)]
+        risk_models = [Limiter(3)]
+
+        PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], alpha_models, risk_models)
+
+    def generate_target_portfolio(self):
+        pass
+
 if __name__ == '__main__':
     mac_2_10 = am.MovingAverageCrossover(2, 10)
     limit = rm.Limiter(3)

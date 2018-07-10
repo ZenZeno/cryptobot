@@ -38,6 +38,9 @@ class MovingAverageCrossover(AlphaModel):
     def data(self): 
         return self.market_data
 
+    def signal(self):
+        return self.market_data.iloc[-1].loc['signal']
+
 if __name__ == '__main__':
     pd.set_option('display.width', None)
 
@@ -52,3 +55,4 @@ if __name__ == '__main__':
     mac_strategy.generate_signals(market_data, 'weightedAverage')
     
     print(mac_strategy.data())
+    print(mac_strategy.signal())
