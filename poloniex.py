@@ -1,6 +1,4 @@
 import requests
-import hmac
-import hashlib
 import datetime 
 import pandas
 
@@ -51,7 +49,7 @@ class Poloniex:
     def chart_data(self, pair, start, end, period):
         print('Fetching poloniex chart data...')
 
-        result = self.api_query('http://poloniex.com/public', 
+        result = requests.get('http://poloniex.com/public', 
                 {'command': 'returnChartData', 
                  'currencyPair':pair, 
                  'start': start, 
@@ -62,7 +60,7 @@ class Poloniex:
         while result.status_code != 200:
             print('Poloniex chart data timed out. Retrying...')
 
-            result = self.api_query('http://poloniex.com/public', 
+            result = requests.get('http://poloniex.com/public', 
                     {'command': 'returnChartData', 
                      'currencyPair':pair, 
                      'start': start, 
