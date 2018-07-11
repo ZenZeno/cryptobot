@@ -7,14 +7,15 @@ import poloniex
 STR_FMT = '%Y-%m-%d %H:%M:%S'
 
 class AlphaModel():
-    def __init__(self):
-        pass
+    def __init__(self, name):
+        self.name = name
 
     def generate_signals(self):
         pass
 
 class MovingAverageCrossover(AlphaModel):
-    def __init__(self, short_window, long_window, period = 300):
+    def __init__(self, name, short_window, long_window, period = 300):
+        AlphaModel.__init__(self, name)
         self.short_window = short_window
         self.long_window = long_window
         self.market_data = pd.DataFrame()

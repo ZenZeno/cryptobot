@@ -27,6 +27,18 @@ class ExecutionModel():
         for alpha_model in portfolio.alpha_models:
             alpha_model.generate_signals(new_market_data, label)
         
+        self.display()
+
+    def display(self):
+        print('\033c')
+        print('Current Portfolio:')
+        print(self.portfolio.current_portfolio)
+        print('Target Portfolio:')
+        print(self.portfolio.target_portfolio)
+        print('Alpha Models:')
+        [print(alpha_model.name + ': ' + str(alpha_model.signal())) 
+                for alpha_model in portfolio.alpha_models]
+        
 if __name__ == '__main__':
     portfolio = pc.BTC_ETH_MovingAverageCrossover(1000)
 
@@ -43,3 +55,5 @@ if __name__ == '__main__':
 
     print(executive.portfolio.current_portfolio)
     [print(alpha_model.signal()) for alpha_model in executive.portfolio.alpha_models]
+
+    executive.execute()
