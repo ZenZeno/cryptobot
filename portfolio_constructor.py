@@ -20,8 +20,8 @@ class PortfolioConstructor():
 
 class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
     def __init__(self, initial_capital):
-        alpha_models = [MovingAverageCrossover(2, 10)]
-        risk_models = [Limiter(3)]
+        alpha_models = [am.MovingAverageCrossover(2, 10)]
+        risk_models = [rm.Limiter(3)]
 
         PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], alpha_models, risk_models)
 
