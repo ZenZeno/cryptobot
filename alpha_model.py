@@ -4,8 +4,6 @@ import pandas as pd
 
 import poloniex
 
-STR_FMT = '%Y-%m-%d %H:%M:%S'
-
 class AlphaModel():
     def __init__(self, name):
         self.name = name
@@ -43,11 +41,12 @@ class MovingAverageCrossover(AlphaModel):
         return self.market_data.iloc[-1].loc['signal']
 
 if __name__ == '__main__':
+    DATE_FMT = '%Y-%m-%d %H:%M:%S'
     pd.set_option('display.width', None)
 
     #fetch test market data from poloniex
-    start = dt.datetime.strptime('2018-05-01 00:00:00', STR_FMT)
-    end = dt.datetime.strptime('2018-05-30 00:00:00', STR_FMT)
+    start = dt.datetime.strptime('2018-05-01 00:00:00', DATE_FMT)
+    end = dt.datetime.strptime('2018-05-30 00:00:00', DATE_FMT)
     api = poloniex.Poloniex('key', 'secret')
     market_data = api.chart_data('BTC_ETH', start.timestamp(), end.timestamp(), 300)
 
