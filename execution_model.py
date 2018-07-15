@@ -11,6 +11,7 @@ class ExecutionModel():
         self.time_delta = time_delta
         self.market = market
         self.portfolio = portfolio
+        self.performance = 0
 
     def execute(self):
         if self.time_delta == False:
@@ -23,24 +24,31 @@ class ExecutionModel():
 
     def tick(self, label):
         new_market_data = market.next()
-
-        for alpha_model in portfolio.alpha_models:
-            alpha_model.generate_signals(new_market_data, label)
         
+        self.portfolio.update(new_market_data)
+        self.portfolio.current_portfoio = self.portfolio.target_portfolio
+        self.calculate_performance('weightedAverage')
         self.display()
 
+    def calculate_performance(self, label):
+        market_open = market.data.iloc[0].loc[label]
+        market_close = market.data.iloc[-1].loc[label]
+        self.market_return = (market_close - market_open) / market_open
+
+        strategy_open = self.portfolio.initial_capital
+        strategy_close = self.portfolio.current_portfolio['BTC Value'].sum()
+        self.strategy_return = (strategy_close - strategy_open) / strategy_open
+
     def display(self):
-        print('\033c')
-        print('Current Portfolio:')
-        print(self.portfolio.current_portfolio)
-        print('Target Portfolio:')
-        print(self.portfolio.target_portfolio)
-        print('Alpha Models:')
-        [print(alpha_model.name + ': ' + str(alpha_model.signal())) 
-                for alpha_model in portfolio.alpha_models]
-        
+        output_str = '\033c' + 'Current Portfolio\n' + str(self.portfolio.current_portfolio) + '\n'
+        output_str += 'Target Portfolio\n' + str(self.portfolio.target_portfolio) + '\n'
+        output_str += 'Market Performance\n' + str(self.market_return) + '\n'
+        output_str += 'Strategy Performance\n' + str(self.strategy_return) 
+
+        print(output_str)
+
 if __name__ == '__main__':
-    portfolio = pc.BTC_ETH_MovingAverageCrossover(1000)
+    portfolio = pc.BTC_ETH_MovingAverageCrossover(1000, 'weightedAverage')
 
     #Construct default test market data:
     DATE_FMT = '%Y-%m-%d %H:%M:%S'
@@ -50,10 +58,5 @@ if __name__ == '__main__':
     market = mm.TestMarket(api, 'BTC_ETH', start.timestamp(), end.timestamp())
     
     executive = ExecutionModel(False, market, portfolio)
-
-    executive.tick('weightedAverage')
-
-    print(executive.portfolio.current_portfolio)
-    [print(alpha_model.signal()) for alpha_model in executive.portfolio.alpha_models]
 
     executive.execute()
