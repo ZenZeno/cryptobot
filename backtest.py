@@ -6,6 +6,8 @@ import sys
 import poloniex
 import execution_model as em
 import market_model as mm
+import os
+
 import portfolio_constructor as pc
 
 def pick_random_time_period():
@@ -36,9 +38,11 @@ def construct_random_model(time_period):
 
 def main():
     num_simulations = sys.argv[1]
-    
-    results = pd.DataFrame()
-
+   
+    if os.path.exists('results.csv'):
+        results = pd.DataFrame.from_csv('results.csv')
+    else:
+        results = pd.DataFrame()
     try:
         for i in range(int(num_simulations)):
             time_period = pick_random_time_period()
@@ -52,7 +56,7 @@ def main():
                     'Market Returns': model.market_return,
                     'Strategy Returns': model.strategy_return}
 
-            results = results.append(data, ignore_index = True)
+            results = results.append(data, ignore_index=True)
     except Exception as e:
         print(e)
     finally:

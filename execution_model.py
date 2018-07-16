@@ -13,22 +13,27 @@ class ExecutionModel():
         self.portfolio = portfolio
         self.performance = 0
 
-    def execute(self):
+    def execute(self, verbose = False):
         if self.time_delta == False:
             for i in range(len(self.market.data)):
                 self.tick('weightedAverage')
+                if verbose:
+                    self.calculate_performance('weightedAverage')
+                    self.display()
+
         elif type(time_delta) == 'int':
             while True:
                 self.tick('last')
                 dt.time.sleep(time_delta)
+                if verbose:
+                    self.calculate_performance('last')
+                    self.display()
 
     def tick(self, label):
         new_market_data = self.market.next()
         
         self.portfolio.update(new_market_data)
         self.portfolio.current_portfoio = self.portfolio.target_portfolio
-        self.calculate_performance('weightedAverage')
-        self.display()
 
     def calculate_performance(self, label):
         market_open = self.market.data.iloc[0].loc[label]
@@ -48,7 +53,7 @@ class ExecutionModel():
         print(output_str)
 
 if __name__ == '__main__':
-    portfolio = pc.BTC_ETH_MovingAverageCrossover(1000, 'weightedAverage')
+    portfolio = pc.BTC_ETH_MovingAverageCrossover(1000, 2, 10, 30, 'weightedAverage')
 
     #Construct default test market data:
     DATE_FMT = '%Y-%m-%d %H:%M:%S'

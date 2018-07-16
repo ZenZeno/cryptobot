@@ -16,43 +16,54 @@ class MovingAverageCrossover(AlphaModel):
         AlphaModel.__init__(self, name)
         self.short_window = short_window
         self.long_window = long_window
-        self.market_data = pd.DataFrame()
+        self.price_history = [] 
+        self.short_avg = 0
+        self.long_avg = 0
+        self.signal = 0.0
 
-    def generate_signals(self, market_data, label):
+    def generate_signals(self, last_price):
         #bring in new market data:
-        self.market_data = self.market_data.append(market_data)
+        self.price_history.append(last_price)
+        if len(self.price_history) > self.long_window:
+            del self.price_history[0]
 
         #calculate the appropriate rolling averages:
-        self.market_data['short avg'] = self.market_data[label].rolling(self.short_window).mean()
-        self.market_data['long avg'] = self.market_data[label].rolling(self.long_window).mean()
+        if len(self.price_history) == self.long_window:
+            new_long_avg = sum(self.price_history) / self.long_window
+            new_short_avg = sum(self.price_history[(-1 * self.short_window):]) / self.short_window
+            
+            #generate signal 1.0 if the new short average crossed above the new long average,
+            #generate -1.0 if new short average crossed below the new long average
+            if new_short_avg > new_long_avg and self.short_avg <= self.long_avg:
+                self.signal = 1.0
+            elif new_short_avg < new_long_avg and self.short_avg >= self.long_avg:
+                self.signal = -1.0
+            else:
+                self.signal = 0.0
 
-        #generate a 1 when short average crosses above long average, -1 when it crosses below
-        self.market_data['signal'] = np.where(self.market_data['short avg'] > self.market_data['long avg'], 
-                1.0, -1.0)
-        self.market_data['signal'] = np.sign(self.market_data['signal'].diff())
+            self.short_avg = new_short_avg
+            self.long_avg = new_long_avg 
 
-        #return no signal when there is not enough data
-        self.market_data.loc[0:self.long_window, 'signal'] = 0.0
+    def __str__(self):
+        output = self.name + ':\n'
+        output += str(self.price_history) + '\n' 
+        output += 'Short Average: ' + str(self.short_avg) + '\n'
+        output += 'Long Average: ' + str(self.long_avg) + '\n'
+        output += str(self.signal)
+        
+        return output
 
-    def data(self): 
-        return self.market_data
-
-    def signal(self):
-        return self.market_data.iloc[-1].loc['signal']
-
+#TEST SUITE:
 if __name__ == '__main__':
-    DATE_FMT = '%Y-%m-%d %H:%M:%S'
-    pd.set_option('display.width', None)
-
     #fetch test market data from poloniex
+    DATE_FMT = '%Y-%m-%d %H:%M:%S'
     start = dt.datetime.strptime('2018-05-01 00:00:00', DATE_FMT)
     end = dt.datetime.strptime('2018-05-30 00:00:00', DATE_FMT)
     api = poloniex.Poloniex('key', 'secret')
     market_data = api.chart_data('BTC_ETH', start.timestamp(), end.timestamp(), 300)
 
-    #generate signals over the weighted average of test market data
-    mac_strategy = MovingAverageCrossover(2, 10)
-    mac_strategy.generate_signals(market_data, 'weightedAverage')
-    
-    print(mac_strategy.data())
-    print(mac_strategy.signal())
+    #simulate signal generation for test data
+    mac_strategy = MovingAverageCrossover('MAC 2/10', 2, 10)
+    for i in range(len(market_data)):
+        mac_strategy.generate_signals(market_data.iloc[i]['weightedAverage'])
+        print(mac_strategy)

@@ -27,13 +27,14 @@ class PortfolioConstructor():
         self.target_portfolio = self.current_portfolio
 
     def update(self, market_data):
-        [alpha_model.generate_signals(market_data, self.label) 
+        price = market_data[self.label]
+        [alpha_model.generate_signals(price) 
                 for alpha_model in self.alpha_models]
         self.update_signals()
-        self.generate_target_portfolio()
+        self.generate_target_portfolio(price)
 
     def update_signals(self):
-        self.signals = [(alpha_model.name, alpha_model.signal()) 
+        self.signals = [(alpha_model.name, alpha_model.signal) 
                 for alpha_model in self.alpha_models]
 
         self.signals = dict(self.signals)
@@ -51,9 +52,7 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
         PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], 
                                       alpha_models, risk_models, label)
 
-    def generate_target_portfolio(self):
-        market_price = self.alpha_models[0].data().iloc[-1].loc[self.label]
-
+    def generate_target_portfolio(self, market_price):
         if self.signals['MAC 2/10'] == 1.0:
             #Sell as many BTC as the risk model will allow:
             current_btc = self.current_portfolio.loc['BTC', 'Amount']
@@ -79,16 +78,7 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
 
 #TEST SUITE:
 if __name__ == '__main__':
-    mac_2_10 = am.MovingAverageCrossover('MAC 2/10', 2, 5)
-    limit = rm.Limiter(50)
-
-    btc_portfolio_constructor = PortfolioConstructor(100, ['BTC', 'ETH'],
-                                                     [mac_2_10], [limit], 'weightedAverage')
-
-    print(btc_portfolio_constructor.current_portfolio)
-
-
-    btc_eth_mac_portfolio = BTC_ETH_MovingAverageCrossover(1000, 'weightedAverage')
+    btc_eth_mac_portfolio = BTC_ETH_MovingAverageCrossover(1000, 2, 10, 30, 'weightedAverage')
     
     #fetch test market data from poloniex
     DATE_FMT = '%Y-%m-%d %H:%M:%S'
@@ -100,5 +90,5 @@ if __name__ == '__main__':
     for i in range(len(market_data)):
         btc_eth_mac_portfolio.update(market_data.iloc[i])
         btc_eth_mac_portfolio.current_portfolio = btc_eth_mac_portfolio.target_portfolio
-        print(btc_eth_mac_portfolio.current_portfolio)
+        print(btc_eth_mac_portfolio)
 
