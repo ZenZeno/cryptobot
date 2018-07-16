@@ -15,16 +15,6 @@ class Poloniex:
         time_string = datetime.datetime.fromtimestamp(time_stamp)
         return time_string.strftime(format)
 
-    def api_query(self, command, args={}):
-        if command == 'returnTicker' or command == 'return24hVolume' or command == 'returnCurrencies':
-            return result
-        elif command == 'chart_data':
-            args['command'] = command
-            result = requests.get('http://poloniex.com/public', args)
-            return result
-        else:
-            raise ValueError(command + ' is not a valid command')
-        
     def ticker(self, pair):
         result = requests.get('http://poloniex.com/public', {'command': 'returnTicker'})
         

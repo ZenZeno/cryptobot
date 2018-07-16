@@ -45,10 +45,12 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
     def __init__(self, initial_capital, short_window, long_window, risk_percentage, label):
         alpha_models = [am.MovingAverageCrossover('MAC 2/10', short_window, long_window)]
         risk_models = [rm.Limiter(risk_percentage)]
+        self.short_window = short_window
+        self.long_window = long_window
+
         PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], 
                                       alpha_models, risk_models, label)
 
-    #TODO: refactor to only use current_portfolio as input. Current configuration is for test markets only
     def generate_target_portfolio(self):
         market_price = self.alpha_models[0].data().iloc[-1].loc[self.label]
 
@@ -68,6 +70,12 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
 
         self.target_portfolio.loc['BTC', 'BTC Value'] = self.target_portfolio.loc['BTC', 'Amount']
         self.target_portfolio.loc['ETH', 'BTC Value'] = market_price * self.target_portfolio.loc['ETH', 'Amount']
+
+    def __str__(self):
+        output = 'MAC Crossover ' + str(self.short_window) + '/' + str(self.long_window) + '\n'
+        output += 'Current Portfolio:\n' + str(self.current_portfolio)
+
+        return output
 
 #TEST SUITE:
 if __name__ == '__main__':

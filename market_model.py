@@ -17,11 +17,21 @@ class MarketModel():
 class TestMarket(MarketModel):
     def __init__(self, api, pair, start, end, period = 300):
         MarketModel.__init__(self, api, pair)
+        self.start = dt.datetime.fromtimestamp(start)
+        self.end = dt.datetime.fromtimestamp(end)
         self.data = self.api.chart_data(pair, start, end, period)
         
     def next(self):
         self.tick += 1
         return self.data.iloc[self.tick]
+    
+    def __str__(self):
+        DATE_FMT = '%Y-%m-%d %H:%M:%S'
+
+        output = ('Test Market from ' + dt.datetime.strftime(self.start, DATE_FMT) 
+                + ' to ' + dt.datetime.strftime(self.end, DATE_FMT))
+
+        return output
 
 class LiveMarket(MarketModel):
     def __init__(self, api, pair):

@@ -23,7 +23,7 @@ class ExecutionModel():
                 dt.time.sleep(time_delta)
 
     def tick(self, label):
-        new_market_data = market.next()
+        new_market_data = self.market.next()
         
         self.portfolio.update(new_market_data)
         self.portfolio.current_portfoio = self.portfolio.target_portfolio
@@ -31,8 +31,8 @@ class ExecutionModel():
         self.display()
 
     def calculate_performance(self, label):
-        market_open = market.data.iloc[0].loc[label]
-        market_close = market.data.iloc[-1].loc[label]
+        market_open = self.market.data.iloc[0].loc[label]
+        market_close = self.market.data.iloc[-1].loc[label]
         self.market_return = (market_close - market_open) / market_open
 
         strategy_open = self.portfolio.initial_capital
@@ -40,7 +40,7 @@ class ExecutionModel():
         self.strategy_return = (strategy_close - strategy_open) / strategy_open
 
     def display(self):
-        output_str = '\033c' + 'Current Portfolio\n' + str(self.portfolio.current_portfolio) + '\n'
+        output_str = '\033c' + str(self.market) + '\n' + str(self.portfolio) + '\n'
         output_str += 'Target Portfolio\n' + str(self.portfolio.target_portfolio) + '\n'
         output_str += 'Market Performance\n' + str(self.market_return) + '\n'
         output_str += 'Strategy Performance\n' + str(self.strategy_return) 
