@@ -15,7 +15,7 @@ class PortfolioConstructor():
         self.label = label
         
         #Estimate according to max poloniex fee:
-        self.cost_model = cm.CostModel(0.10)
+        self.cost_model = cm.CostModel(0.20)
 
         #initialize database with bitcoin starting capital 
         self.current_portfolio = pd.DataFrame(columns = ['Amount',
@@ -42,9 +42,9 @@ class PortfolioConstructor():
         pass
 
 class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
-    def __init__(self, initial_capital, label):
-        alpha_models = [am.MovingAverageCrossover('MAC 2/10', 2, 5)]
-        risk_models = [rm.Limiter(30)]
+    def __init__(self, initial_capital, short_window, long_window, risk_percentage, label):
+        alpha_models = [am.MovingAverageCrossover('MAC 2/10', short_window, long_window)]
+        risk_models = [rm.Limiter(risk_percentage)]
         PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], 
                                       alpha_models, risk_models, label)
 
@@ -57,14 +57,12 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
             current_btc = self.current_portfolio.loc['BTC', 'Amount']
             risk_capital = self.risk_models[0].limit * current_btc
             eth_volume = risk_capital / market_price
-            eth_volume -= self.cost_model.cost(eth_volume)
             self.target_portfolio.loc['ETH', 'Amount'] = self.current_portfolio.loc['ETH', 'Amount'] + eth_volume
             self.target_portfolio.loc['BTC', 'Amount'] = self.current_portfolio.loc['BTC', 'Amount'] - risk_capital
         elif self.signals['MAC 2/10'] == -1.0:
             #Sell all ETH for BTC:
             current_eth = self.current_portfolio.loc['ETH', 'Amount']
             btc_volume = current_eth * market_price
-            btc_volume -= self.cost_model.cost(bth_volume)
             self.target_portfolio.loc['BTC', 'Amount'] += btc_volume
             self.target_portfolio.loc['ETH', 'Amount'] = 0
 
