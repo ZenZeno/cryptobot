@@ -14,9 +14,9 @@ def pick_random_time_period():
     max_date = dt.datetime.now().timestamp()
 
     start = np.random.randint(min_date, max_date)
-    end = np.random.randint(start, max_date)
-
     start = dt.datetime.fromtimestamp(start)
+
+    end = start.timestamp() + dt.timedelta(weeks=4).total_seconds()
     end = dt.datetime.fromtimestamp(end)
 
     return start, end
@@ -36,11 +36,27 @@ def construct_random_model(time_period):
 
 def main():
     num_simulations = sys.argv[1]
+    
+    results = pd.DataFrame()
 
-    for i in range(int(num_simulations)):
-        time_period = pick_random_time_period()
-        model = construct_random_model(time_period)
-        model.execute()
+    try:
+        for i in range(int(num_simulations)):
+            time_period = pick_random_time_period()
+            model = construct_random_model(time_period)
+            model.execute()
+            
+            data = {'Begin': time_period[0],
+                    'End': time_period[1],
+                    'Short Window': model.portfolio.short_window,
+                    'Long Window': model.portfolio.long_window,
+                    'Market Returns': model.market_return,
+                    'Strategy Returns': model.strategy_return}
+
+            results = results.append(data, ignore_index = True)
+    except Exception as e:
+        print(e)
+    finally:
+        results.to_csv('results.csv')
 
 if __name__ == '__main__':
     main()
