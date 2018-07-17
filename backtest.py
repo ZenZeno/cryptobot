@@ -38,16 +38,20 @@ def construct_random_model(time_period):
 
 def main():
     num_simulations = sys.argv[1]
-   
+    if len(sys.argv) == 3 and sys.argv[2] == '-v':
+        verbose = True
+    else:
+        verbose = False
+
     if os.path.exists('results.csv'):
-        results = pd.DataFrame.from_csv('results.csv')
+        results = pd.read_csv('results.csv', index_col = 0)
     else:
         results = pd.DataFrame()
     try:
         for i in range(int(num_simulations)):
             time_period = pick_random_time_period()
             model = construct_random_model(time_period)
-            model.execute()
+            model.execute(verbose)
             
             data = {'Begin': time_period[0],
                     'End': time_period[1],
@@ -60,6 +64,7 @@ def main():
     except Exception as e:
         print(e)
     finally:
+        results = results.dropna()
         results.to_csv('results.csv')
 
 if __name__ == '__main__':

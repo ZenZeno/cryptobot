@@ -17,16 +17,16 @@ class ExecutionModel():
         if self.time_delta == False:
             for i in range(len(self.market.data)):
                 self.tick('weightedAverage')
+                self.calculate_performance('weightedAverage')
                 if verbose:
-                    self.calculate_performance('weightedAverage')
                     self.display()
 
         elif type(time_delta) == 'int':
             while True:
                 self.tick('last')
                 dt.time.sleep(time_delta)
+                self.calculate_performance('last')
                 if verbose:
-                    self.calculate_performance('last')
                     self.display()
 
     def tick(self, label):
