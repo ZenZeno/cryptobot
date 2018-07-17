@@ -17,11 +17,18 @@ class Kraken():
     def ticker(self, pair):
         result = rq.get(self.public_url + 'Ticker', {'pair': pair})
 
+        #construct a pandas dataframe from the ticker data:
         result = dict(result.json())
         result = result['result']
-        result = pd.DataFrame(result)
-        result['ask', 'bid'] = result['a', 'b']
-        return result
+        result = pd.DataFrame(result).T
+        result[['ask', 'bid', 'last', 'volume', 'vol weighted avg price', 
+            '# trades', 'low', 'high', 'open']] = result[:]
+        result = result.drop(columns = ['a','b','c','v','p','t','l','h','o'])
+        
+        #index the currency information with timestamp:
+        levels = [result.index, [dt.datetime.now()]]
+        index = pd.MultiIndex.from_arrays(levels)
+        return result.set_index(index, drop = True)
 
 if __name__ == '__main__':
     api = Kraken('','')
