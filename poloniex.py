@@ -1,20 +1,14 @@
 import requests
 import datetime 
 import pandas
+import hmac
+import hashlib
 
 class Poloniex:
     def __init__(self, key, secret):
-        self.key = key
+        self.key = bytes(key, 'utf8')
         self.secret = bytes(secret, 'utf8')
     
-    def createTimeStamp(self, datestr, format="%Y-%m-%d %H:%M:%S"):
-        timeStamp = datetime.datetime.strptime(datestr, format)
-        return timeStamp.timestamp()
-
-    def createTimeString(self, time_stamp, format="%Y-%m-%d %H:%M:%S"):
-        time_string = datetime.datetime.fromtimestamp(time_stamp)
-        return time_string.strftime(format)
-
     def ticker(self, pair):
         result = requests.get('http://poloniex.com/public', {'command': 'returnTicker'})
         
@@ -63,4 +57,102 @@ class Poloniex:
         result = result.drop('date', axis = 1)
 
         return result
+    
+    def balances(self):
+        nonce = int(datetime.datetime.now().timestamp() * 1000)
+        payload = {'command': 'returnBalances',
+                   'nonce': nonce}
+        
+        request = requests.Request('POST', 'https://poloniex.com/tradingApi',
+                data = payload)
 
+        #Sign the request with SHA512 hash and send the appropriate headers:
+        request = request.prepare()
+        signature =  hmac.new(self.secret, request.body, 
+                digestmod = hashlib.sha512)
+        request.headers['Sign'] = signature.hexdigest()
+        request.headers['Key'] = self.key
+
+        #Open a session and send the request:
+        with requests.Session() as session:
+            result = session.send(request)
+           
+            #Try again until response is recieved:
+            while result.status_code != 200:
+                print('Poloniex balances timed out, retrying...')
+                result = session.send(request)
+        
+        #Return a pandas series of the data:
+        result = pandas.Series(result.json())
+        return result
+
+    def buy(self, currency_pair, rate, amount):
+        nonce = int(datetime.datetime.now().timestamp() * 1000)
+        payload = {'command': 'buy',
+                   'currencyPair': currency_pair,
+                   'rate': rate,
+                   'amount': amount,
+                   'nonce': nonce}
+        
+        request = requests.Request('POST', 'https://poloniex.com/tradingApi',
+                data = payload)
+
+        #Sign the request with SHA512 hash and send the appropriate headers:
+        request = request.prepare()
+        signature =  hmac.new(self.secret, request.body, 
+                digestmod = hashlib.sha512)
+        request.headers['Sign'] = signature.hexdigest()
+        request.headers['Key'] = self.key
+
+        #Open a session and send the request:
+        with requests.Session() as session:
+            print('Placing buy order')
+            result = session.send(request)
+           
+            #Try again until response is recieved:
+            while result.status_code != 200:
+                print('Poloniex balances timed out, retrying...')
+                result = session.send(request)
+        
+        #Return a pandas series of the data:
+        result = pandas.Series(result.json())
+        return result
+
+    def sell(self, currency_pair, rate, amount):
+        nonce = int(datetime.datetime.now().timestamp() * 1000)
+        payload = {'command': 'buy',
+                   'currencyPair': currency_pair,
+                   'rate': rate,
+                   'amount': amount,
+                   'nonce': nonce}
+        
+        request = requests.Request('POST', 'https://poloniex.com/tradingApi',
+                data = payload)
+
+        #Sign the request with SHA512 hash and send the appropriate headers:
+        request = request.prepare()
+        signature =  hmac.new(self.secret, request.body, 
+                digestmod = hashlib.sha512)
+        request.headers['Sign'] = signature.hexdigest()
+        request.headers['Key'] = self.key
+
+        #Open a session and send the request:
+        with requests.Session() as session:
+            print('Placing buy order')
+            result = session.send(request)
+           
+            #Try again until response is recieved:
+            while result.status_code != 200:
+                print('Poloniex balances timed out, retrying...')
+                result = session.send(request)
+        
+        #Return a pandas series of the data:
+        result = pandas.Series(result.json())
+        return result
+
+if __name__ == '__main__':
+    with open('keys') as file:
+        api_keys = file.read().strip().split(',')
+
+    api = Poloniex(api_keys[0], api_keys[1])
+    print(api.balances())
