@@ -1,6 +1,5 @@
 import datetime as dt
 import pandas as pd
-
 import kraken as kr
 
 class MarketModel():
@@ -22,18 +21,18 @@ class KrakenMarketModel(MarketModel):
         self.history = self.history.append(ticker)
     
     def ask(self, pair):
-        return self.history.loc[pair].iloc[-1].loc['ask'][0]
+        return float(self.history.loc[pair].iloc[-1].loc['ask'][0])
     
     def bid(self, pair):
-        return self.history.loc[pair].iloc[-1].loc['bid'][0]
+        return float(self.history.loc[pair].iloc[-1].loc['bid'][0])
 
     def last(self, pair):
-        return self.history.loc[pair].iloc[-1].loc['last'][0]
+        return float(self.history.loc[pair].iloc[-1].loc['last'][0])
     
 if __name__ == '__main__':
     test_market = KrakenMarketModel()
 
     for i in range(10):
-        print(test_market.update('ETHXBT'))
+        print(test_market.update('XETHXXBT'))
         print(test_market.history)
         print(test_market.ask('XETHXXBT'))

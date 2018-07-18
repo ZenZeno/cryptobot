@@ -8,67 +8,64 @@ import cost_model as cm
 import poloniex
 
 class PortfolioConstructor():
-    def __init__(self, initial_capital, coins, alpha_models, risk_models, label):
+    def __init__(self, initial_capital, coins, alpha_models, risk_models):
         self.initial_capital = initial_capital
         self.alpha_models = alpha_models
         self.risk_models = risk_models
-        self.label = label
         
         #Estimate according to max poloniex fee:
         self.cost_model = cm.CostModel(0.20)
 
         #initialize database with bitcoin starting capital 
         self.current_portfolio = pd.DataFrame(columns = ['Amount',
-                                                         'BTC Value'], 
+                                                         'XBT Value'], 
                                               index = coins)
 
-        self.current_portfolio.loc['BTC', 'Amount'] = initial_capital
+        self.current_portfolio.loc['XBT', 'Amount'] = initial_capital
         self.current_portfolio.fillna(0, inplace = True)
         self.target_portfolio = self.current_portfolio
 
-    def update(self, market_data):
-        price = market_data[self.label]
+    def update(self, price):
         [alpha_model.generate_signals(price) 
                 for alpha_model in self.alpha_models]
         self.update_signals()
         self.generate_target_portfolio(price)
 
     def update_signals(self):
-        self.signals = [(alpha_model.name, alpha_model.signal) 
+        self.signals = [(alpha_model.name, alpha_model.signal)
                 for alpha_model in self.alpha_models]
-
         self.signals = dict(self.signals)
 
     def generate_target_portfolio(self):
         pass
 
 class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
-    def __init__(self, initial_capital, short_window, long_window, risk_percentage, label):
-        alpha_models = [am.MovingAverageCrossover('MAC 2/10', short_window, long_window)]
+    def __init__(self, initial_capital, short_window, long_window, risk_percentage):
+        alpha_models = [am.MovingAverageCrossover('MAC', short_window, long_window)]
         risk_models = [rm.Limiter(risk_percentage)]
         self.short_window = short_window
         self.long_window = long_window
 
-        PortfolioConstructor.__init__(self, initial_capital, ['BTC', 'ETH'], 
-                                      alpha_models, risk_models, label)
+        PortfolioConstructor.__init__(self, initial_capital, ['XBT', 'ETH'], 
+                                      alpha_models, risk_models)
 
     def generate_target_portfolio(self, market_price):
-        if self.signals['MAC 2/10'] == 1.0:
+        if self.signals['MAC'] == 1.0:
             #Sell as many BTC as the risk model will allow:
-            current_btc = self.current_portfolio.loc['BTC', 'Amount']
+            current_btc = self.current_portfolio.loc['XBT', 'Amount']
             risk_capital = self.risk_models[0].limit * current_btc
             eth_volume = risk_capital / market_price
             self.target_portfolio.loc['ETH', 'Amount'] = self.current_portfolio.loc['ETH', 'Amount'] + eth_volume
-            self.target_portfolio.loc['BTC', 'Amount'] = self.current_portfolio.loc['BTC', 'Amount'] - risk_capital
-        elif self.signals['MAC 2/10'] == -1.0:
+            self.target_portfolio.loc['XBT', 'Amount'] = self.current_portfolio.loc['XBT', 'Amount'] - risk_capital
+        elif self.signals['MAC'] == -1.0:
             #Sell all ETH for BTC:
             current_eth = self.current_portfolio.loc['ETH', 'Amount']
             btc_volume = current_eth * market_price
-            self.target_portfolio.loc['BTC', 'Amount'] += btc_volume
+            self.target_portfolio.loc['XBT', 'Amount'] += btc_volume
             self.target_portfolio.loc['ETH', 'Amount'] = 0
 
-        self.target_portfolio.loc['BTC', 'BTC Value'] = self.target_portfolio.loc['BTC', 'Amount']
-        self.target_portfolio.loc['ETH', 'BTC Value'] = market_price * self.target_portfolio.loc['ETH', 'Amount']
+        self.target_portfolio.loc['XBT', 'XBT Value'] = self.target_portfolio.loc['XBT', 'Amount']
+        self.target_portfolio.loc['ETH', 'XBT Value'] = market_price * self.target_portfolio.loc['ETH', 'Amount']
 
     def __str__(self):
         output = 'MAC Crossover ' + str(self.short_window) + '/' + str(self.long_window) + '\n'
@@ -78,17 +75,10 @@ class BTC_ETH_MovingAverageCrossover(PortfolioConstructor):
 
 #TEST SUITE:
 if __name__ == '__main__':
-    btc_eth_mac_portfolio = BTC_ETH_MovingAverageCrossover(1000, 2, 10, 30, 'weightedAverage')
-    
-    #fetch test market data from poloniex
-    DATE_FMT = '%Y-%m-%d %H:%M:%S'
-    start = dt.datetime.strptime('2018-05-01 00:00:00', DATE_FMT)
-    end = dt.datetime.strptime('2018-05-30 00:00:00', DATE_FMT)
-    api = poloniex.Poloniex('key', 'secret')
-    market_data = api.chart_data('BTC_ETH', start.timestamp(), end.timestamp(), 300)
-
-    for i in range(len(market_data)):
-        btc_eth_mac_portfolio.update(market_data.iloc[i])
-        btc_eth_mac_portfolio.current_portfolio = btc_eth_mac_portfolio.target_portfolio
-        print(btc_eth_mac_portfolio)
-
+    mac_portfolio = BTC_ETH_MovingAverageCrossover(1000, 2, 10, 30)
+    market = mm.KrakenMarketModel()
+    while True:
+        market.update('XETHXXBT')
+        mac_portfolio.update(market.last('XETHXXBT'))
+        print(mac_portfolio.alpha_models)
+        print(mac_portfolio)
