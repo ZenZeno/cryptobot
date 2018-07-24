@@ -53,7 +53,7 @@ class Poloniex:
 
         #parse json into dataframe, then set the date string as index:
         result = pandas.DataFrame(result.json())
-        result.index = result['date'].apply(self.createTimeString)
+        result.index = result['date'].apply(datetime.datetime.fromtimestamp)
         result = result.drop('date', axis = 1)
 
         return result

@@ -1,38 +1,35 @@
-import datetime as dt
-import pandas as pd
-import kraken as kr
+import pandas
 
 class MarketModel():
     def __init__(self, api):
-        self.api = api
-        self.history = pd.DataFrame() 
+        self._api = api
+        self._ohlc = pandas.DataFrame() 
+        self._ticker = pandas.DataFrame()
 
-    def next(self):
-        pass
+    def ticker(self, pairs):
+        raise NotImplementedError
 
-class KrakenMarketModel(MarketModel):
-    def __init__(self):
-        api = kr.Kraken.from_key_file('keys')
+    def ohlc(self, pairs):
+        raise NotImplementedError
+
+    def calc_ohlc(self):
+        raise NotImplementedError
+
+    def get_ohlc(selfi, pairs):
+        raise NotImplementedError
+
+class PoloniexTestMarket(MarketModel):
+    def __init__(self, pair, start, end, delta = 300):
+        api = px.Poloniex('','')
         MarketModel.__init__(self, api)
 
-    def update(self, pairs):
-        #Add new market data to historical record before returning it:
-        ticker = self.api.ticker(pairs)
-        self.history = self.history.append(ticker)
-    
-    def ask(self, pair):
-        return float(self.history.loc[pair].iloc[-1].loc['ask'][0])
-    
-    def bid(self, pair):
-        return float(self.history.loc[pair].iloc[-1].loc['bid'][0])
+        self.tick = 0
+        self.history = self.api.chart_data(pair, start.timestamp(), end.timestamp(), delta)
 
-    def last(self, pair):
-        return float(self.history.loc[pair].iloc[-1].loc['last'][0])
-    
-if __name__ == '__main__':
-    test_market = KrakenMarketModel()
+    def update(self):
+        self.tick += 1
+        self.ticker = self.history.head(self.tick)
 
-    for i in range(10):
-        print(test_market.update('XETHXXBT'))
-        print(test_market.history)
-        print(test_market.ask('XETHXXBT'))
+    def price(self):
+        return self.ticker.iloc[-1]['weightedAverage']
+
