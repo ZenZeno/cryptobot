@@ -4,7 +4,9 @@ import pandas
 import hmac
 import hashlib
 
-class Poloniex:
+import market_model
+
+class API:
     def __init__(self, key, secret):
         self.key = bytes(key, 'utf8')
         self.secret = bytes(secret, 'utf8')
@@ -32,12 +34,11 @@ class Poloniex:
 
     def chart_data(self, pair, start, end, period):
         print('Fetching poloniex chart data...')
-
         result = requests.get('http://poloniex.com/public', 
                 {'command': 'returnChartData', 
                  'currencyPair':pair, 
-                 'start': start, 
-                 'end': end, 
+                 'start': start.timestamp(), 
+                 'end': end.timestamp(), 
                  'period':period})
         
         #Try again until data is recieved:
@@ -47,14 +48,15 @@ class Poloniex:
             result = requests.get('http://poloniex.com/public', 
                     {'command': 'returnChartData', 
                      'currencyPair':pair, 
-                     'start': start, 
-                     'end': end, 
+                     'start': start.timestamp(), 
+                     'end': end.timestamp(), 
                      'period':period})
 
         #parse json into dataframe, then set the date string as index:
-        result = pandas.DataFrame(result.json())
+        result = pandas.DataFrame(result.json()) 
         result.index = result['date'].apply(datetime.datetime.fromtimestamp)
         result = result.drop('date', axis = 1)
+        result = result.dropna(axis = 'index')
 
         return result
     
@@ -150,9 +152,11 @@ class Poloniex:
         result = pandas.Series(result.json())
         return result
 
-if __name__ == '__main__':
-    with open('keys') as file:
-        api_keys = file.read().strip().split(',')
+class TestMarket(market_model.TestMarketModel):
+    def __init__(self, pairs, start, end, period = 300):
+        self._api = API('','')
+        market_model.TestMarketModel.__init__(self, self._api)
 
-    api = Poloniex(api_keys[0], api_keys[1])
-    print(api.balances())
+        #Build a list of charts for each currency pair:
+        self._chart = self._api.chart_data(pairs, start, end, period) 
+        print(self._chart)

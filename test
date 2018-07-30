@@ -1,0 +1,6 @@
+#!/bin/bash
+
+clear
+python tests.py &
+tail -f test.log
+

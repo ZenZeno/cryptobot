@@ -1,19 +1,23 @@
 import unittest
+import pandas
+import datetime
+import logging
+
 import market_model
 import kraken
+import poloniex
+import portfolio
 
-class MarketModelTests(object):
-    pass
+DATE_FMT = '%Y-%m-%d %H:%M:%S'
 
-class KrakenModelTests(MarketModelTests, unittest.TestCase):
+class KrakenLiveMarket(unittest.TestCase):
     def setUp(self):
-        self.market = kraken.Market()
+        self.market = kraken.LiveMarket()
+        pandas.set_option('display.width', None)
 
     def test_ticker(self):
-        print(self.market.ticker('ETHXBT'))
-
-    def test_ohlc(self):
-        print(self.market.ohlc('ETHXBT'))
+        self.assertIsInstance(self.market.ticker('ETHXBT'), pandas.DataFrame)
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='test.log', level=logging.DEBUG, filemode='w')
     unittest.main()

@@ -1,0 +1,4 @@
+INFO:root:Requesting Kraken Ticker for ETHXBT
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.kraken.com
+DEBUG:urllib3.connectionpool:https://api.kraken.com:443 "GET /0/public/Ticker?pair=ETHXBT HTTP/1.1" 200 None
+DEBUG:root:Ticker received: {'error': [], 'result': {'XETHXXBT': {'a': ['0.056250', '24', '24.000'], 'b': ['0.056230', '2', '2.000'], 'c': ['0.056250', '0.02510026'], 'v': ['4120.21826190', '4340.28460026'], 'p': ['0.056470', '0.056423'], 't': [2429, 2652], 'l': ['0.055860', '0.055860'], 'h': ['0.056980', '0.056980'], 'o': '0.056730'}}}
